@@ -34,6 +34,14 @@ Scope.prototype.$eval = function(expr, locals) {
 	return expr(this, locals);
 };
 
+Scope.prototype.$apply = function(expr) {
+	try {
+		return this.$eval(expr);
+	} finally {
+		this.$digest(); 
+	}
+};
+
 Scope.prototype.$$digestOnce = function() {
 
 	var self = this; 
