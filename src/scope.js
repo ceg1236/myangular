@@ -5,6 +5,7 @@ function Scope() {
 	this.$$watchers = [];
 	this.$$lastDirtyWatch = null; 
 	this.$$asyncQueue = [];
+	this.$$postDigestQueue = [];
 	this.$$phase = null; 
 }
 
@@ -96,6 +97,10 @@ Scope.prototype.$digest = function() {
 		}
 	} while (dirty || this.$$asyncQueue.length);
 	this.$clearPhase(); 
+
+	while(this.$$postDigestQueue.length) {
+		this.$$postDigestQueue.shift()();
+	}
 };
 
 Scope.prototype.$beginPhase = function(phase) {
@@ -107,5 +112,9 @@ Scope.prototype.$beginPhase = function(phase) {
 
 Scope.prototype.$clearPhase = function() {
 	this.$$phase = null; 
+};
+
+Scope.prototype.$$postDigest = function(fn) {
+	this.$$postDigestQueue.push(fn); 
 };
 
