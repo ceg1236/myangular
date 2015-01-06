@@ -29,7 +29,20 @@ Scope.prototype.$new = function(isolated) {
 	this.$$children.push(child); 
 	child.$$watchers = []; 
 	child.$$children = []; 
+	child.$parent = this; 
 	return child;
+};
+
+Scope.prototype.$destroy = function () {
+	if (this === this.$$root) {
+		return; 
+	}
+	var siblings = this.$parent.$$children;
+	var indexOfThis = siblings.indexOf(this); 
+	if (indexOfThis >= 0) {
+		siblings.splice(indexOfThis, 1); 
+	}
+
 };
 
 Scope.prototype.$$everyScope = function(fn) {
