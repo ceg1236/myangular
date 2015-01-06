@@ -13,10 +13,19 @@ function Scope() {
 
 function initWatchVal() { }
 
-Scope.prototype.$new = function() {
-	var ChildScope = function() { };
-	ChildScope.prototype = this;
-	var child = new ChildScope(); 
+Scope.prototype.$new = function(isolated) {
+	var child; 
+
+	if (isolated) {
+		child = new Scope(); 
+		child.$$root = this.$$root;
+		child.$$asyncQueue = this.$$asyncQueue;
+		child.$$postDigestQueue = this.$$postDigestQueue; 
+	} else {
+		var ChildScope = function() { };
+		ChildScope.prototype = this;
+		child = new ChildScope(); 
+	}
 	this.$$children.push(child); 
 	child.$$watchers = []; 
 	child.$$children = []; 
