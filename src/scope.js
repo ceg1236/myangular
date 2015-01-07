@@ -13,10 +13,11 @@ function Scope() {
 
 function initWatchVal() { }
 
+// isolated scopes are part of the scope hierarchy,
+// but do not have access to everything of the parent
 Scope.prototype.$new = function(isolated) {
 	var child; 
-
-	if (isolated) {
+	if (isolated) {			
 		child = new Scope(); 
 		child.$$root = this.$$root;
 		child.$$asyncQueue = this.$$asyncQueue;
@@ -33,7 +34,9 @@ Scope.prototype.$new = function(isolated) {
 	return child;
 };
 
-Scope.prototype.$destroy = function () {
+// Find current scope from the parent's $$children array
+// then remove it
+Scope.prototype.$destroy = function () {	
 	if (this === this.$$root) {
 		return; 
 	}
@@ -42,9 +45,12 @@ Scope.prototype.$destroy = function () {
 	if (indexOfThis >= 0) {
 		siblings.splice(indexOfThis, 1); 
 	}
-
 };
 
+// Helper function that executes a fn once for each scope
+// in the hierarchy until the function returns falsy.
+// Invoke fn once for current scope, than recursively calls
+// on each child.
 Scope.prototype.$$everyScope = function(fn) {
 	if ( fn(this) ) {
 		return this.$$children.every(function(child) {
@@ -100,13 +106,15 @@ Scope.prototype.$evalAsync = function(expr) {
 	self.$$asyncQueue.push({scope: this, expression: expr}); 
 };
 
+// $apply starts at root and digests entire scope hierarchy
+// while $digest runs down the hierarchy from this scope
 Scope.prototype.$apply = function(expr) {
 	try {
 		this.$beginPhase('$apply');
 		return this.$eval(expr);
 	} finally {
 		this.$clearPhase(); 
-		this.$$root.$digest(); 
+		this.$$root.$digest(); 	
 	}
 };
 
@@ -118,6 +126,9 @@ Scope.prototype.$$digestOnce = function() {
 		var newValue, oldValue; 
 		_.forEachRight(scope.$$watchers, function(watcher) {
 			try {
+				// The watch fns must be passed the scope object they
+				// were originally attached to, not the scope object we 
+				// happen to call $digest on. 
 				if (watcher) {
 					newValue = watcher.watchFn(scope); 
 					oldValue = watcher.last;
@@ -142,6 +153,8 @@ Scope.prototype.$$digestOnce = function() {
 	return dirty; 
 };
 
+// digest the watches attached to the scope we call and
+// it's children, but not watches attached to parents or siblings
 Scope.prototype.$digest = function() {
 	var ttl = 10;
 	var dirty;
