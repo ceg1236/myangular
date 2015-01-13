@@ -13,8 +13,9 @@ function Scope() {
 
 function initWatchVal() { }
 
-// isolated scopes are part of the scope hierarchy,
-// but do not have access to everything of the parent
+/* Isolated scopes are part of the scope hierarchy,
+ but do not have access to everything of the parent
+ */
 Scope.prototype.$new = function(isolated) {
 	var child; 
 	if (isolated) {			
@@ -34,8 +35,9 @@ Scope.prototype.$new = function(isolated) {
 	return child;
 };
 
-// Find current scope from the parent's $$children array
-// then remove it
+/* Find current scope from the parent's $$children array
+ then remove it
+ */
 Scope.prototype.$destroy = function () {	
 	if (this === this.$$root) {
 		return; 
@@ -47,10 +49,11 @@ Scope.prototype.$destroy = function () {
 	}
 };
 
-// Helper function that executes a fn once for each scope
-// in the hierarchy until the function returns falsy.
-// Invoke fn once for current scope, than recursively calls
-// on each child.
+/* Helper function that executes a fn once for each scope
+ in the hierarchy until the function returns falsy.
+ Invoke fn once for current scope, than recursively calls
+ on each child.
+ */
 Scope.prototype.$$everyScope = function(fn) {
 	if ( fn(this) ) {
 		return this.$$children.every(function(child) {
@@ -61,6 +64,10 @@ Scope.prototype.$$everyScope = function(fn) {
 	}
 };
 
+/* Passing true to valueEq registers a value/equality-based
+ watch, meaning the watch checks deep value equality.
+ Without the valueEq flag, we watch for reference
+ */
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 	var self = this; 
 	var watcher = {
@@ -78,6 +85,22 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 			self.$$root.$$lastDirtyWatch = null; 
 		}
 	};
+};
+
+/* $watchCollection is basically an optimization of the
+ value-based version of $watch. $watchCollection only 
+ watches collections on the shallow level, it can get away
+ with an implementation that's faster and uses less memory 
+*/
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+	var internalWatchFn = function(scope) {
+
+	};
+	var internalListenerFn = function() {
+
+	};
+
+	return this.$watch(internalWatchFn, internalListenerFn);
 };
 
 Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
@@ -106,8 +129,9 @@ Scope.prototype.$evalAsync = function(expr) {
 	self.$$asyncQueue.push({scope: this, expression: expr}); 
 };
 
-// $apply starts at root and digests entire scope hierarchy
-// while $digest runs down the hierarchy from this scope
+/* $apply starts at root and digests entire scope hierarchy
+ while $digest runs down the hierarchy from this scope
+ 	*/
 Scope.prototype.$apply = function(expr) {
 	try {
 		this.$beginPhase('$apply');
@@ -153,8 +177,9 @@ Scope.prototype.$$digestOnce = function() {
 	return dirty; 
 };
 
-// digest the watches attached to the scope we call and
-// it's children, but not watches attached to parents or siblings
+/* digest the watches attached to the scope we call and
+ it's children, but not watches attached to parents or siblings
+ */
 Scope.prototype.$digest = function() {
 	var ttl = 10;
 	var dirty;
