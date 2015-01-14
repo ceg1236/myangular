@@ -99,6 +99,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 	var changeCount = 0; 
 
 	var internalWatchFn = function(scope) {
+		var key; 
 		newValue = watchFn(scope); 
 
 		if ( _.isObject(newValue) ) {
@@ -124,6 +125,18 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 					changeCount++; 
 					oldValue = {}; 
 				}
+				/* _.forOwn iterates over an object's members, 
+					 but only the ones defined for the object itself.
+					 Members inherited through prototype chain are excluded.
+					 $watchCollection does not watch inherited properties. 
+					 */
+				_.forOwn(newValue, function(newVal, key) {
+					var bothNaN = _.isNaN(newVal) && _.isNaN(oldValue[key]);
+					if (!bothNaN && oldValue[key] !== newVal) {
+						changeCount++; 
+						oldValue[key] = newVal;
+					}
+				});
 			}
 		} else {
 			if ( !self.$$areEqual(newValue, oldValue, false) ) {
