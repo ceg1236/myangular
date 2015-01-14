@@ -119,7 +119,11 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 					}
 				});
 			} else {
-
+				// Arrays are objects, we must also exclude arrays and array-likes
+				if (!_.isObject(oldValue) || _.isArrayLike(oldValue)) {
+					changeCount++; 
+					oldValue = {}; 
+				}
 			}
 		} else {
 			if ( !self.$$areEqual(newValue, oldValue, false) ) {
