@@ -1293,5 +1293,24 @@ describe('Scope', function () {
 			scope.$digest(); 
 			expect(scope.counter).toBe(2);
 		});
+
+		it("does not consider an object with a length prop an array", function() {
+			scope.obj = {length: 42, a: 1};
+			scope.counter = 0; 
+
+			scope.$watchCollection(
+				function(scope) { return scope.obj; }, 
+				function(newValue, oldValue, scope) {
+					scope.counter++;
+				}
+			);
+
+			scope.$digest(); 
+ 
+			scope.obj.newKey = 'abc'; 
+			scope.$digest(); 
+			expect(scope.counter).toBe(2); 
+
+		});
 	});
 });
