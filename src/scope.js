@@ -97,6 +97,15 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 	var newValue; 
 	var oldValue; 
 	var oldLength; // Keep track of sizes of objects to prevent unnecessary iteration
+	
+	var veryOldValue;
+	/* Provides boolean of whether or not we should perform the
+	  expensive task of copying full collection into veryOldValue
+	  The length property of a Function contains the number
+	  of declared arguments in that function
+	  */
+	var trackVeryOldValue = (listenerFn.length > 1); 
+	var firstRun = true; 
 	var changeCount = 0; 
 
 	var internalWatchFn = function(scope) {
@@ -164,11 +173,19 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 			oldValue = newValue; 
 		}
 
-
 		return changeCount; 
 	};
 	var internalListenerFn = function() {
-		listenerFn(newValue, oldValue, self); 
+		if (firstRun) {
+			listenerFn(newValue, newValue, self); 
+			firstRun = false; 
+		} else {
+			listenerFn(newValue, veryOldValue, self); 
+		}
+
+		if (trackVeryOldValue) {
+			veryOldValue = _.clone(newValue); // _.clone gets a shallow copy of collection, and works with primitives
+		}
 	};
 
 	return this.$watch(internalWatchFn, internalListenerFn);
