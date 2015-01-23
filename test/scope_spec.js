@@ -1385,4 +1385,16 @@ describe('Scope', function () {
 			expect(oldValueGiven).toEqual({a: 1, b: 2}); 
 		});		
 	});
+	describe("Events", function() {
+
+		var parent, scope, child, isolatedChild; 
+
+		beforeEach(function() {
+			parent = new Scope();
+			scope = parent.$new();
+			child = scope.$new(); 
+			isolatedChild = scope.$new(true); 
+		});
+		
+	});
 });
