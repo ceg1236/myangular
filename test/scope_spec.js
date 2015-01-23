@@ -1425,34 +1425,24 @@ describe('Scope', function () {
 			expect(isolatedChild.$$listeners).toEqual({someEvent: [listener3]});
 		});
 
-		it("calls the listeners of matching event on $emit", function() {
-			/* Spy functions are special stubs that do nothing
-				 but record whether they have been called or not 
-				 and what arguments they've been called with. 
-			*/
-			var listener1 = jasmine.createSpy();  
-			var listener2 = jasmine.createSpy();  
+		_.forEach(['$emit', '$broadcast'], function(method) {
 
-			scope.$on('someEvent', listener1);
-			scope.$on('someOtherEvent', listener2);
+			it("calls the listeners of matching event on "+method, function() {
+				/* Spy functions are special stubs that do nothing
+					 but record whether they have been called or not 
+					 and what arguments they've been called with. 
+				*/
+				var listener1 = jasmine.createSpy();  
+				var listener2 = jasmine.createSpy();  
 
-			scope.$emit('someEvent');
+				scope.$on('someEvent', listener1);
+				scope.$on('someOtherEvent', listener2);
 
-			expect(listener1).toHaveBeenCalled();
-			expect(listener2).not.toHaveBeenCalled();
-		});
+				scope[method]('someEvent');
 
-		it("calls the listeners of matching event on $broadcast", function() {
-			var listener1 = jasmine.createSpy(); 
-			var listener2 = jasmine.createSpy(); 
-
-			scope.$on('someEvent', listener1);
-			scope.$on('someOtherEvent', listener2);
-
-			scope.$broadcast('someEvent');
-
-			expect(listener1).toHaveBeenCalled();
-			expect(listener2).not.toHaveBeenCalled();
+				expect(listener1).toHaveBeenCalled();
+				expect(listener2).not.toHaveBeenCalled();
+			});
 		});
 	});
 });
