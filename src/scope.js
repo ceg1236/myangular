@@ -8,6 +8,7 @@ function Scope() {
 	this.$$postDigestQueue = [];
 	this.$$root = this; 
 	this.$$children = []; 
+	this.$$listeners = {};
 	this.$$phase = null; 
 }
 
@@ -30,6 +31,7 @@ Scope.prototype.$new = function(isolated) {
 	}
 	this.$$children.push(child); 
 	child.$$watchers = []; 
+	child.$$listeners = {};
 	child.$$children = []; 
 	child.$parent = this; 
 	return child;
@@ -312,5 +314,13 @@ Scope.prototype.$clearPhase = function() {
 
 Scope.prototype.$$postDigest = function(fn) {
 	this.$$postDigestQueue.push(fn); 
+};
+
+Scope.prototype.$on = function(eventName, listener) {
+	var listeners = this.$$listeners[eventName];
+	if (!listeners) {
+		this.$$listeners[eventName] = listeners = []; 
+	} 
+	listeners.push(listener);
 };
 
