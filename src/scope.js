@@ -325,18 +325,22 @@ Scope.prototype.$on = function(eventName, listener) {
 };
 
 Scope.prototype.$emit = function(eventName) {
-	this.$$fireEventOnScope(eventName); 
+	// _.rest gives an array of all the function's arguments except the first
+	var additionalArgs = _.rest(arguments); 
+	this.$$fireEventOnScope(eventName, additionalArgs); 
 };
 
 Scope.prototype.$broadcast = function(eventName) {
-	this.$$fireEventOnScope(eventName); 
+	var additionalArgs = _.rest(arguments); 
+	this.$$fireEventOnScope(eventName, additionalArgs); 
 };
 
-Scope.prototype.$$fireEventOnScope = function(eventName) {
+Scope.prototype.$$fireEventOnScope = function(eventName, additionalArgs) {
 	var event = {name: eventName}; 
+	var listenerArgs = [event].concat(additionalArgs);
 	var listeners = this.$$listeners[eventName] || [];
 	_.forEach(listeners, function(listener) {
-		listener(event);
+		listener.apply(null, listenerArgs);
 	});
 };
 
