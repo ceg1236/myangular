@@ -330,7 +330,7 @@ Scope.prototype.$on = function(eventName, listener) {
 	};
 };
 /* $emit passes event to its listeners on current scope 
-   and the up the scope hieracrchy, to its listeners on
+   and then up the scope hieracrchy, to its listeners on
    each scope up to and including the root */
 Scope.prototype.$emit = function(eventName) {
 	
@@ -344,11 +344,18 @@ Scope.prototype.$emit = function(eventName) {
 	} while(scope);
 	return event;
 };
-
+/* $broadcast sends event to listeners on current scope
+ 		and then down the scope hierarchy, which must traverse 
+ 		the tree-like structure of children and is thus more
+ 		expensive than $emit, which simply goes up in a straight
+ 		path through parents*/
 Scope.prototype.$broadcast = function(eventName) {
 	var event = {name: eventName};
 	var listenerArgs = [event].concat(_.rest(arguments));
-	this.$$fireEventOnScope(eventName, listenerArgs); 
+	this.$$everyScope(function(scope) {
+		scope.$$fireEventOnScope(eventName, listenerArgs);
+		return true;
+	});
 	return event;
 };
 
