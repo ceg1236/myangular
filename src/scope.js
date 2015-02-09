@@ -329,21 +329,31 @@ Scope.prototype.$on = function(eventName, listener) {
 		}
 	};
 };
-
+/* $emit passes event to its listeners on current scope 
+   and the up the scope hieracrchy, to its listeners on
+   each scope up to and including the root */
 Scope.prototype.$emit = function(eventName) {
+	
+	var event = {name: eventName};
 	// _.rest gives an array of all the function's arguments except the first
-	var additionalArgs = _.rest(arguments); 
-	return this.$$fireEventOnScope(eventName, additionalArgs); 
+	var listenerArgs = [event].concat(_.rest(arguments));
+	var scope = this;
+	do {
+		scope.$$fireEventOnScope(eventName, listenerArgs);
+		scope = scope.$parent;
+	} while(scope);
+	return event;
 };
 
 Scope.prototype.$broadcast = function(eventName) {
-	var additionalArgs = _.rest(arguments); 
-	return this.$$fireEventOnScope(eventName, additionalArgs); 
+	var event = {name: eventName};
+	var listenerArgs = [event].concat(_.rest(arguments));
+	this.$$fireEventOnScope(eventName, listenerArgs); 
+	return event;
 };
 
-Scope.prototype.$$fireEventOnScope = function(eventName, additionalArgs) {
-	var event = {name: eventName}; 
-	var listenerArgs = [event].concat(additionalArgs);
+Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
+
 	var listeners = this.$$listeners[eventName] || [];
 	var i = 0;
 	while(i < listeners.length) {
