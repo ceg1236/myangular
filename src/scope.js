@@ -334,25 +334,28 @@ Scope.prototype.$on = function(eventName, listener) {
    each scope up to and including the root */
 Scope.prototype.$emit = function(eventName) {
 	
-	var event = {name: eventName};
+	var event = {name: eventName, targetScope: this};
 	// _.rest gives an array of all the function's arguments except the first
 	var listenerArgs = [event].concat(_.rest(arguments));
 	var scope = this;
 	do {
+		event.currentScope = scope;
 		scope.$$fireEventOnScope(eventName, listenerArgs);
 		scope = scope.$parent;
 	} while(scope);
 	return event;
 };
+
 /* $broadcast sends event to listeners on current scope
  		and then down the scope hierarchy, which must traverse 
  		the tree-like structure of children and is thus more
  		expensive than $emit, which simply goes up in a straight
  		path through parents*/
 Scope.prototype.$broadcast = function(eventName) {
-	var event = {name: eventName};
+	var event = {name: eventName, targetScope: this};
 	var listenerArgs = [event].concat(_.rest(arguments));
 	this.$$everyScope(function(scope) {
+		event.currentScope = scope;
 		scope.$$fireEventOnScope(eventName, listenerArgs);
 		return true;
 	});
