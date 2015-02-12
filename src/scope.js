@@ -333,8 +333,14 @@ Scope.prototype.$on = function(eventName, listener) {
    and then up the scope hieracrchy, to its listeners on
    each scope up to and including the root */
 Scope.prototype.$emit = function(eventName) {
-	
-	var event = {name: eventName, targetScope: this};
+	var propagationStopped = false;
+	var event = {
+		name: eventName, 
+		targetScope: this,
+		stopPropagation: function() {
+			propagationStopped = true;
+		} 
+	};
 	// _.rest gives an array of all the function's arguments except the first
 	var listenerArgs = [event].concat(_.rest(arguments));
 	var scope = this;
@@ -342,7 +348,7 @@ Scope.prototype.$emit = function(eventName) {
 		event.currentScope = scope;
 		scope.$$fireEventOnScope(eventName, listenerArgs);
 		scope = scope.$parent;
-	} while(scope);
+	} while(scope && !propagationStopped);
 	return event;
 };
 
