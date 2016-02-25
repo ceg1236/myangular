@@ -1666,6 +1666,18 @@ describe('Scope', function () {
 
 				expect(listener2).toHaveBeenCalled();
 			});
+
+			it("sets defaultPrevented when preventDefault called on "+method, function() {
+				var listener = function(event) {
+					event.preventDefault();
+				};
+
+				scope.$on('someEvent', listener);
+
+				var event = scope[method]('someEvent');
+
+				expect(event.defaultPrevented).toBe(true);
+			});
 		});
 	});
 });

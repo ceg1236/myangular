@@ -339,7 +339,10 @@ Scope.prototype.$emit = function(eventName) {
 		targetScope: this,
 		stopPropagation: function() {
 			propagationStopped = true;
-		} 
+		},
+		preventDefault: function() {
+			event.defaultPrevented = true;
+		}
 	};
 	// _.rest gives an array of all the function's arguments except the first
 	var listenerArgs = [event].concat(_.rest(arguments));
@@ -358,7 +361,13 @@ Scope.prototype.$emit = function(eventName) {
  		expensive than $emit, which simply goes up in a straight
  		path through parents*/
 Scope.prototype.$broadcast = function(eventName) {
-	var event = {name: eventName, targetScope: this};
+	var event = {
+		name: eventName, 
+		targetScope: this,
+		preventDefault: function() {
+			event.defaultPrevented = true;
+		}
+	};
 	var listenerArgs = [event].concat(_.rest(arguments));
 	this.$$everyScope(function(scope) {
 		event.currentScope = scope;
