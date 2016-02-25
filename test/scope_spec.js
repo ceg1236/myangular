@@ -1678,6 +1678,37 @@ describe('Scope', function () {
 
 				expect(event.defaultPrevented).toBe(true);
 			});
+
+			it("fires $destroy when destroyed", function() {
+				var listener = jasmine.createSpy();
+				scope.$on('$destroy', listener);
+
+				scope.$destroy();
+
+				expect(listener).toHaveBeenCalled();
+			});
+
+			it("fires $destroy on children destroyed", function() {
+				var listener = jasmine.createSpy();
+				child.$on('$destroy', listener);
+
+				scope.$destroy();
+
+				expect(listener).toHaveBeenCalled();
+			});
+
+			it("does not stop on exceptions on "+method, function() {
+				var listener1 = function(event) {
+					throw 'listener1 throwing exception';
+				};
+				var listener2 = jasmine.createSpy();
+				scope.$on('someEvent', listener1);
+				scope.$on('someEvent', listener2);
+
+				scope[method]('someEvent');
+
+				expect(listener2).toHaveBeenCalled();
+			});
 		});
 	});
 });

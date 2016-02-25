@@ -377,6 +377,18 @@ Scope.prototype.$broadcast = function(eventName) {
 	return event;
 };
 
+Scope.prototype.$destroy = function() {
+	if (this === this.$$root) {
+		return;
+	}
+	var siblings = this.$parent.$$children;
+	var indexOfThis = siblings.indexOf(this);
+	if (indexOfThis >= 0) {
+		this.$broadcast('$destroy');
+		siblings.splice(indexOfThis, 1);
+	}
+};
+
 Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
 
 	var listeners = this.$$listeners[eventName] || [];
