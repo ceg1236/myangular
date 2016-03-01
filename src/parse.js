@@ -36,11 +36,21 @@ Lexer.prototype.isNumber = function(ch) {
 Lexer.prototype.readNumber = function() {
 	var number = '';
 	while (this.index < this.text.length) {
-		var ch = this.text[this.index];
+		var ch = this.text[this.index].toLowerCase();
 		if ( ch === '.' || this.isNumber(ch) ) {
 			number += ch;
 		} else {
-			break;
+			var nextChar = this.peek();
+			var prevChar = number[number.length - 1];
+			if ( ch === 'e' && this.isExpOperator(nextChar) ) {
+				number += ch;
+			} else if ( this.isExpOperator(ch) && prevChar === 'e' && nextChar && this.isNumber(nextChar)) {
+				number += ch;
+			} else if ( this.isExpOperator(ch) && prevChar ==='e' && (!nextChar || !this.isNumber(nextChar) ) ){
+				throw 'Invalid exponent';
+			} else {
+				break;
+			}
 		}
 		this.index++;
 	}
@@ -54,6 +64,10 @@ Lexer.prototype.readNumber = function() {
 
 Lexer.prototype.peek = function() {
 	return this.index < this.text.length - 1 ? this.text[this.index + 1] : false;
+};
+
+Lexer.prototype.isExpOperator = function(ch) {
+	return ch === '-' || ch === '+' || this.isNumber(ch);
 };
 
 function Parser(lexer) {
