@@ -1,6 +1,8 @@
 /* jshint globalstrict:true */
 'use strict';
 
+var ESCAPES = {n: '\n', f: '\f', r: '\r', t: '\t', v: '\v', '\'':'\'', '"':'"'};
+
 function parse(expr) {
 	var lexer = new Lexer();
 	var parser = new Parser(lexer);
@@ -20,6 +22,8 @@ Lexer.prototype.lex = function(text) {
 		this.ch = this.text.charAt(this.index);
 		if (this.isNumber(this.ch) || ( this.ch === '.' && this.isNumber( this.peek() ) ) ) {
 			this.readNumber();
+		} else if ( this.ch === '\'' || this.ch === '"' ) {
+			this.readString(this.ch);
 		} else {
 			throw 'Unexpected next character: ' + this.ch;
 		}
@@ -60,6 +64,53 @@ Lexer.prototype.readNumber = function() {
 		fn: _.constant(number),
 		json: true
 	});
+};
+
+Lexer.prototype.readString = function(quote) {
+	this.index++;
+	var rawString = quote;
+	var string = '';
+	var escapeMode = false;
+	while (this.index < this.text.length) {
+		var ch = this.text[this.index];
+		rawString += ch;
+		if (escapeMode) {
+			if (ch === 'u') {
+				var hex = this.text.substring(this.index + 1, this.index + 5);
+				if (!hex.match(/[\da-f]{4}/i)) {
+					throw 'Invalid unicode escapes';
+				}
+				rawString += hex;
+				this.index += 4;
+				string += String.fromCharCode(parseInt(hex, 16));
+			} else {
+
+				var replacement = ESCAPES[ch];
+				if (replacement) {
+					string += replacement;
+				} else {
+					string += ch;
+				}
+			}
+			escapeMode = false;
+
+		} else if (ch === quote) {
+			this.index++;
+			this.tokens.push({
+				text: rawString,
+				json: true,
+				fn: _.constant(string)
+			});
+			console.log(rawString, string);
+			return;
+		} else if (ch === '\\') {
+			escapeMode = true;
+		} else {
+			string += ch;
+		}
+		this.index++;
+	}
+	throw 'Unmatched quote';
 };
 
 Lexer.prototype.peek = function() {
